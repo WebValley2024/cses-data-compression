@@ -11,7 +11,7 @@ from numcodecs import Blosc, blosc
 from tqdm import tqdm
 
 
-def worker(file, outfolder=None):
+def worker(file, outfolder=None, overwrite=False):
     try:
         zarrfile = file.replace(".h5", ".zarr.zip")
 
@@ -21,6 +21,9 @@ def worker(file, outfolder=None):
             zarrfile = os.path.basename(zarrfile)
             # add the output folder
             zarrfile = os.path.join(outfolder, zarrfile)
+
+        if os.path.exists(zarrfile) and not overwrite:
+            return
 
         compressor = Blosc(cname="zstd", clevel=9, shuffle=Blosc.AUTOSHUFFLE)
         ds = xr.open_dataset(file)
