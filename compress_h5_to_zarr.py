@@ -25,9 +25,17 @@ def worker(file, outfolder=None):
         compressor = Blosc(cname="zstd", clevel=9, shuffle=Blosc.AUTOSHUFFLE)
         ds = xr.open_dataset(file)
 
-        time_dim = ds.UTC_TIME.dims[0]
-        encodings = {}
+        # get the time dimensione, which can be called either "UTCTime" or "UTC_TIME"
+        if "UTCTime" in ds.var():
+            time_dim = "UTCTime"
+        elif "UTC_TIME" in ds.var():
+            time_dim = "UTC_TIME"
+        else:
+            raise ValueError("Time dimension not found (tried UTCTime and UTC_TIME)")
 
+        time_dim = ds[time_dim].dims[0]
+
+        encodings = {}
         for k in ds.data_vars:
             if ds[k].dims[0] == time_dim:
                 # use chunks of 128 along the time dimension
